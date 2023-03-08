@@ -139,9 +139,10 @@ playAgainBtn.addEventListener('click', (e) => {
 
 // Listen for voice input
 recognition.onresult = (event) => {
+  document.querySelector('h3').textContent = 'Say your guess';
   let guess = event.results[resultPos][0].transcript;
-  console.log('direct input guess: ', guess);
-  checkGuess(guess);
+  console.log('direct input guess: ', guess.trim());
+  checkGuess(guess.trim());
   feedBack.style.display = 'flex';
   resultPos++;
 };
@@ -171,7 +172,9 @@ function checkGuess(guess) {
 function textToNum(textNum) {
   if (!Number(textNum)) {
     let convertedNum =
-      textNumArray.findIndex((current) => current == textNum) + 1;
+      textNumArray.findIndex((current) => {
+        return String(current) === String(textNum);
+      }) + 1;
     if (convertedNum === 0) return textNum;
     return Number(convertedNum);
   } else {
