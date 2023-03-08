@@ -2,6 +2,9 @@ const youSaid = document.querySelector('.you-said');
 const guessOutput = document.querySelector('.guess');
 const hint = document.querySelector('.hint');
 const mic = document.querySelector('i');
+const feedBack = document.querySelector('.feedback-wrapper');
+const playAgainBtn = document.querySelector('.play-again');
+
 const randomNum = Math.floor(Math.random() * 100) + 1;
 const textNumArray = [
   'one',
@@ -105,6 +108,9 @@ const textNumArray = [
   'ninetynine',
   'onehundred',
 ];
+let resultPos = 0;
+
+console.log(randomNum);
 
 // Taken from mdn web docs
 // Innitialized our speech recognition and grammar objects
@@ -114,12 +120,12 @@ const SpeechGrammarList =
   window.SpeechGrammarList || window.webkitSpeechGrammarList;
 const SpeechRecognitionEvent =
   window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
-const recognition = new SpeechRecognition();
+let recognition = new SpeechRecognition();
 const speechRecognitionList = new SpeechGrammarList();
-recognition.continuous = false;
+recognition.continuous = true;
 recognition.lang = 'en-US';
 recognition.interimResults = false;
-recognition.maxAlternatives = 1;
+recognition.maxAlternatives = 0;
 
 // Event Listeners
 mic.addEventListener('click', (e) => {
@@ -127,25 +133,36 @@ mic.addEventListener('click', (e) => {
   recognition.start();
 });
 
+playAgainBtn.addEventListener('click', (e) => {
+  location.reload();
+});
+
+// Listen for voice input
 recognition.onresult = (event) => {
-  const guess = event.results[0][0].transcript;
+  let guess = event.results[resultPos][0].transcript;
   console.log('direct input guess: ', guess);
   checkGuess(guess);
-};
-
-recognition.onspeechend = () => {
-  recognition.stop();
+  feedBack.style.display = 'flex';
+  resultPos++;
 };
 
 // Checking if the guess is correct and reflecting that in the DOM
 function checkGuess(guess) {
   const guessNum = textToNum(guess);
-  console.log('RandomNum: ', randomNum, 'guessNum: ', guessNum);
+  console.log(typeof guessNum);
   if (guessNum == randomNum) {
     console.log('correct!');
-  } else {
-    console.log('wrong!');
     guessOutput.textContent = guessNum;
+    hint.textContent = `That's Correct!`;
+    recognition.stop();
+    document.querySelector('.guess-wrapper').classList.add('complete');
+    playAgainBtn.classList.add('active');
+  } else {
+    guessOutput.textContent = guessNum;
+    hint.textContent = guessNum < randomNum ? 'Go Higher!' : 'Go Lower!';
+  }
+  if (typeof guessNum != 'number') {
+    hint.textContent = 'That is not a number!';
   }
 }
 
@@ -155,8 +172,8 @@ function textToNum(textNum) {
   if (!Number(textNum)) {
     let convertedNum =
       textNumArray.findIndex((current) => current == textNum) + 1;
-    console.log(convertedNum);
-    return convertedNum;
+    if (convertedNum === 0) return textNum;
+    return Number(convertedNum);
   } else {
     return Number(textNum);
   }
